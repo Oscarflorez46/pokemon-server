@@ -2,19 +2,19 @@
 const express = require("express")
 const mongoose = require("mongoose")
 require("dotenv").config()
-
+const pokemonRouter = require("./routes/pokemonRoutes")
 const app = express();
-const PORT = 3000
+const PORT = 3000;
 
-app.set("port",PORT)
+app.set("port",PORT);
 //MIDELWARES
-app.use(express.json)
+app.use(express.json())
 
 //routes
-
+app.use("/api/pokemon",pokemonRouter)
 //DB connection - CONECCION CON LA BASE DE DATOS
 mongoose.connect(process.env.MONGO_URI)
-.then(()=>console.log("connecto to DB"))
+.then(()=>console.log("connect to DB"))
 .catch((err)=>console.error(err));
 
 //port listening
