@@ -11,10 +11,10 @@ exports.createPokemonStatus = async (req,res)=>{
             catch: req.body.catch,
             in_team : req.body.in_team
         })
-
+        res.status(201).json(status)
     } catch (error){
         console.error(error)
-        response.status(500).json({error})
+        res.status(500).json({error})
     }
 }
 exports.getPokemonStatus = async (req,res)=>{
