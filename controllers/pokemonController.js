@@ -1,5 +1,6 @@
 const { json } = require("express")
 const StatusPokemon = require ("../models/pokemonModels")
+const {fetchPokemon} = require ("../services/fetch")
 exports.test =(req,res)=>{
     console.log("hola controller")
     res.status(200).send("Hola desde controller")
@@ -30,10 +31,18 @@ exports.getPokemonStatus = async (req,res)=>{
 exports.getPokemonByPokemonId = async (req,res)=>{
     try {
         const pokemon_id =req.params.pokemon_id;
-        let pokemon = await StatusPokemon.findOne({pokemon_id:pokemon_id});
-        if(!pokemon){
-            res.status(404).json({message:"Pokemon not found"})
+        let statusPokemon = await StatusPokemon.findOne({pokemon_id:pokemon_id});
+        if(!statusPokemon){
+            let newStatusPokemon ={
+                pokemon_id:pokemon_id,
+                view:false,
+                catch:false,
+                in_team:false
+            }
+            pokemon = await fetchPokemon(pokemon_id,newStatusPokemon)
+            return res.status(200).json(pokemon)
         }else{
+            pokemon = await fetchPokemon(pokemon_id,statusPokemon)
             res.status(200).json(pokemon)
         }
         
@@ -88,17 +97,35 @@ exports.inTeamPokemonByPokemonId = async (req,res)=>{
         const pokemon_id = req.params.pokemon_id
         const pokemon = await StatusPokemon.findOne({"pokemon_id":pokemon_id})
         const newPokemon = await StatusPokemon.findOneAndReplace
-        ({"pokemon_id":pokemon_id},{
+        const pokemonStatusView = req.body.view;
+        const pokemonStatusCatch = req.body.catch
+        const pokemonStatusInteam = req.body.in_team
+        if (!pokemon){
+            return res.status(400).json({message:"malo, pokemon not view yet"})
+        }
+        else if(pokemon.view != pokemonStatusView){
+            return res.status(400).json({message:"muy malo, inconsistent data"})
+        }
+        else if(pokemon.catch != pokemonStatusCatch){
+            return res.status(400).json({message:"paila, inconsistent data"})
+        }  
+        else if(pokemon.in_team != pokemonStatusInteam){
+            return res.status(400).json({message:"nono, inconsistent data"})
+        } 
+        else if (pokemon.catch){
+            return res.status(200).json(pokemon)
+        }else
+        -({"pokemon_id":pokemon_id},{
             pokemon_id : pokemon_id,
             view : true,
             catch : true, 
             in_team : !pokemon.in_team 
         },{new:true})
+
         return res.status(200).json(newPokemon)
     } catch (error) {
         console.error(error)
-        return res.status(500).json({error})
-        
+        return res.status(500).json({error})    
     }  
     else{
         return res.status(400).json({message:"Bad request, pokemon_id in body different pokemon_id in params"})
